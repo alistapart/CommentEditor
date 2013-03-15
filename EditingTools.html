@@ -1,0 +1,33 @@
+/*
+
+This goes inside your exp:comment:entries loop.
+This element (or a similar one) needs to be outside the loop: <div id="page-state" data-xid="{XID_HASH}"></div>
+(It can be any type of element. Perhaps the parent container for your comments.)
+	
+We're assuming both jQuery and inline-comment-edit.js are available.
+
+*/
+
+<div class="comment-tools">
+	{if editable}
+	<a href="#" class="edit-link">Edit</a>
+	{if member_group == "1"}
+	<!-- we prefer that only admins be able to delete/close a comment -->
+	<a href="#" class="mod-link">Delete</a>
+	{/if}
+	{/if}
+	<a href="#" class="embed-link">Embed</a>
+</div>
+
+{if editable}
+<div class="edit-comment">
+	<!-- obviously this div wants to be hidden via CSS when the page first loads -->
+	<!-- the "one week" is a setting that can be found in Comments > Settings in the control panel (604800 seconds) -->
+	Comments are editable for one week.
+	<textarea>{comment_stripped}</textarea>
+	<div class="button-holder">
+		<input type="submit" name="cancel" value="Cancel" class="cancel-edit">
+		<input type="submit" name="save" value="Save" class="submit-edit">
+	</div>
+</div>
+{/if}
