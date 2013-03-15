@@ -23,76 +23,115 @@ used in advertising or otherwise to promote the sale, use or other dealings
 in this Software without prior written authorization from EllisLab, Inc.
 */
 
+/*
+
+This is a modified version of the script provided by EllisLab, Inc.
+The original can be found here: https://github.com/EllisLab/CommentEditor
+
+Modifications made by Tim Murtaugh (@murtaugh)
+
+The modifications:
+	1. re-worked so we could put the function in our external JS file, instead of directly in the page
+	2. give us more control over the animations that reveal and hide the elements
+	3. added a confirmation dialogue for closing comments
+	
+*/
+
 $.fn.CommentEditor = function(options) {
 
 	var OPT;
-		
+
+	// "url" should match whatever result your system returns for this tag: {exp:comment:ajax_edit_url}
+
 	OPT = $.extend({
-		url: "{exp:comment:ajax_edit_url}",
-		comment_body: '.comment_body',
-		showEditor: '.edit_link',
-		hideEditor: '.cancel_edit',
-		saveComment: '.submit_edit',
-		closeComment: '.mod_link'
+			url: '/?ACT=XX',
+			comment_body: '.comment-body',
+			showEditor: '.edit-link',
+			hideEditor: '.cancel-edit',
+			saveComment: '.submit-edit',
+			closeComment: '.mod-link'
 	}, options);
-		
-	var view_elements = [OPT.comment_body, OPT.showEditor, OPT.closeComment].join(','),
-		edit_elements = '.editCommentBox',
-		hash = '{XID_HASH}';
-		
+
+	var view_elements = [OPT.comment_body, OPT.showEditor, OPT.closeComment, OPT.showEmbed].join(','),
+			edit_elements = '.edit-comment';
+
 	return this.each(function() {
-		var id = this.id.replace('comment_', ''),
-		parent = $(this);
-			
-		parent.find(OPT.showEditor).click(function() { showEditor(id); return false; });
-		parent.find(OPT.hideEditor).click(function() { hideEditor(id); return false; });
-		parent.find(OPT.saveComment).click(function() { saveComment(id); return false; });
-		parent.find(OPT.closeComment).click(function() { closeComment(id); return false; });
+			var id = this.id,
+			parent = $(this);
+
+			parent.find(OPT.showEditor).click(function() { showEditor(id); return false; });
+			parent.find(OPT.hideEditor).click(function() { hideEditor(id); return false; });
+			parent.find(OPT.saveComment).click(function() { saveComment(id); return false; });
+			parent.find(OPT.closeComment).click(function() { closeComment(id); return false; });
 	});
 
 	function showEditor(id) {
-		$("#comment_"+id)
-			.find(view_elements).hide().end()
-			.find(edit_elements).show().end();
+			$("#"+id)
+					.find(view_elements).css('opacity', '.1').end()
+					.find(edit_elements).slideDown('fast').end();
 	}
 
 	function hideEditor(id) {
-		$("#comment_"+id)
-			.find(view_elements).show().end()
-			.find(edit_elements).hide();
+			$("#"+id)
+					.find(view_elements).css('opacity', '1').end()
+					.find(edit_elements).slideUp('fast');
 	}
+	
+	
+	// If you have secure forms turned on (and you ought to) you need to make the value of the {XID_HASH} variable
+	// available to this script. At the moment, the script is looking for an element that looks like this:
+	// <span id="page-state" data-xid="{XID_HASH}"></span>
+	// (It can be any type of element. Perhaps the parent container for your comments.)
+	
+	var getHash;
 
 	function closeComment(id) {
-		var data = {status: "close", comment_id: id, XID: hash};
-
-		$.post(OPT.url, data, function (res) {
-			if (res.error) {
-				return $.error('Could not moderate comment.');
+	
+		var confirmClose = confirm('Are you sure?');
+		
+		if (confirmClose == true) {
+         
+			if (getHash == null) {
+				getHash = $("#page-state").data('xid');
 			}
 			
-			hash = res.XID;
-			$('input[name=XID]').val(hash);
-			$('#comment_' + id).hide();
-		});
+			var data = {status: "close", comment_id: id, XID: getHash};
+
+			$.post(OPT.url, data, function (res) {
+				if (res.error) {
+					return $.error('Could not moderate comment.');
+				}
+
+				hash = res.XID;
+				$('input[name=XID]').val(hash);
+				$('#' + id).fadeOut('fast');
+				// reset the hash based on the response from the server
+				getHash = hash;
+		
+			 });
+		}
 	}
 
 	function saveComment(id) {
-		var content = $("#comment_"+id).find('.editCommentBox'+' textarea').val(),
-			data = {comment: content, comment_id: id, XID: hash};
+
+		if (getHash == null) {
+			getHash = $("#page-state").data('xid');
+		}
 		
+		var content = $("#"+id).find('.edit-comment'+' textarea').val(),
+		data = {comment: content, comment_id: id, XID: getHash};
+
 		$.post(OPT.url, data, function (res) {
 			if (res.error) {
-				hideEditor(id);
 				return $.error('Could not save comment.');
 			}
 
 			hash = res.XID;
 			$('input[name=XID]').val(hash);
-			$("#comment_"+id).find('.comment_body').html(res.comment);
+			$("#"+id).find('.comment-body').html(res.comment);
 			hideEditor(id);
+			// reset the hash based on the response from the server
+			getHash = hash;
 		});
 	}
 };
-	
-
-$(function() { $('.comment').CommentEditor(); });
