@@ -1,8 +1,15 @@
-#####################################################
-CommentEditor for the ExpressionEngine Comment Module
-#####################################################
+# ALA's version of EE's CommentEditor
 
-This script is output by the ``{exp:comment:edit_comment_script}`` tag, but is provided here if you would like to
-`customize the client-side code <http://ellislab.com/expressionengine/user-guide/modules/comment/index.html#customizing-client-side-code>`_.
+ExpressionEngine offers the ability to allow commenters to edit their own comments inline, but we wanted to customize it a bit.
 
-This script is meant to be used within ExpressionEngine, either as a JavaScript template, or as inline JavaScript in a standard template or Snippet. Both the endpoint URL tag and the Secure Forms hash variable will not be parsed if used externally.
+The modifications:
+
+1. We adjusted the JS so we could put the function in our external JS file, instead of directly in the page (it took a little sleuthing to figure out how to make the form submit securely)
+2. Added more control over the animations that reveal and hide the elements
+3. Added a confirmation dialogue for closing comments
+
+The original script as provided by EllisLab can be found here:
+
+https://github.com/EllisLab/CommentEditor
+
+Big thanks to Derek Jones and the EllisLab team for helping us figure out some of the important fiddly bits.
